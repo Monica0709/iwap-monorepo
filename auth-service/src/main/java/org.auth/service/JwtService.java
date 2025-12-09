@@ -14,6 +14,12 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @Value("${jwt.expiration}")
+    private long expiration;
+
     private final Key signKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     public String generateToken(String email, Long tenantId) {
@@ -21,8 +27,8 @@ public class JwtService {
                 .setSubject(email)
                 .claim("tenantId", tenantId)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1 day
-                .signWith(signKey)
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(Keys.hmacShaKeyFor(secret.getBytes()), SignatureAlgorithm.HS256)
                 .compact();
     }
     public String extractUsername(String token) {
