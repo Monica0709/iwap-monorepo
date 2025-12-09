@@ -1,6 +1,7 @@
 package org.auth.service;
 
 import lombok.RequiredArgsConstructor;
+import org.auth.dto.LoginRequest;
 import org.auth.dto.RegisterRequest;
 import org.auth.model.Role;
 import org.auth.model.Tenant;
@@ -33,5 +34,13 @@ public class AuthService {
         user.setTenant(tenant);
         user.getRoles().add(role);
         userRepository.save(user);
+    }
+
+    public String login(LoginRequest req){
+        User u = userRepository.findByEmail(req.getEmail()).orElseThrow(() -> new RuntimeException("Invalid Credentials"));
+        if(!passwordEncoder.matches(req.getPassword(),u.getPassword())){
+           throw new RuntimeException("Invalid Credentials");
+        }
+        return jwtService.generateToken(u.getEmail(),u.getTenant().getId());
     }
 }
